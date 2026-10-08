@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oink of Isaac: Barnyard Breakout</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Bar Controls -->
+    <div class="top-bar">
+        <span>OINK OF ISAAC: BARNYARD BREAKOUT</span>
+        <div class="top-bar-controls">
+            <button id="audioToggleBtn" class="small-btn">SFX: ON</button>
+            <button id="openCompendiumBtn" class="small-btn">ITEMS (TAB)</button>
+        </div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="scanlines"></div>
+
+        <!-- Title Screen -->
+        <div id="titleScreen" class="overlay">
+            <h1 class="game-title">OINK OF ISAAC<br>BARNYARD BREAKOUT</h1>
+            <h2 class="sub-title">★ ESCAPE THE FARM SLAUGHTERHOUSE! ★</h2>
+
+            <div class="controls-box">
+                <p><span>[W, A, S, D]</span> or <span>[ARROWS]</span> : Move Piglet</p>
+                <p><span>[MOUSE AIM & CLICK]</span> or <span>[I, J, K, L]</span> : Shoot Mud & Kernels</p>
+                <p><span>[SPACEBAR]</span> : Use Active Item (When Charged)</p>
+                <p><span>[E] / [SHIFT]</span> : Place Apple Bomb (Destroys rocks & foes)</p>
+                <p><span>[TAB] / [ESC]</span> : View 55+ Items & Synergies Compendium</p>
+                <p><span>MERCHANT</span> : Barnaby sells health, armor, & rare wares for corn cobs</p>
+            </div>
+
+            <div class="btn-group">
+                <button id="startBtn" class="retro-btn">BREAK OUT OF THE BARN</button>
+                <button id="encyclopediaBtn" class="retro-btn secondary-btn">ITEM COMPENDIUM</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="overlay hidden">
+            <h1 class="game-title" style="color: #d90429;">YOU WERE CAPTURED...</h1>
+            <p style="font-size: 10px; color: #adb5bd; margin-bottom: 16px;">The farm predators got the better of you!</p>
+            <div id="deathStats" class="stats-readout"></div>
+            <button id="retryBtn" class="retro-btn">TRY TO ESCAPE AGAIN</button>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="victoryScreen" class="overlay hidden">
+            <h1 class="game-title" style="color: #ffd166;">SWEET FREEDOM!</h1>
+            <p style="font-size: 11px; color: #06d6a0; margin-bottom: 16px;">Farmer Grimm has fallen! The barn gates are open!</p>
+            <div id="victoryStats" class="stats-readout"></div>
+            <button id="playAgainBtn" class="retro-btn">PLAY ANOTHER RUN</button>
+        </div>
+
+        <!-- Compendium Modal -->
+        <div id="compendiumModal" class="overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>BARNYARD COMPENDIUM (55 ITEMS & SYNERGIES)</h3>
+                    <button id="closeCompendiumBtn" class="close-btn">X</button>
+                </div>
+                <div class="tabs">
+                    <button id="tabItemsBtn" class="tab-btn active">ALL 55 ITEMS</button>
+                    <button id="tabSynergiesBtn" class="tab-btn">SYNERGIES MATRIX</button>
+                </div>
+                <div id="itemsTabContent">
+                    <div id="itemsGrid" class="items-grid"></div>
+                </div>
+                <div id="synergiesTabContent" class="hidden">
+                    <div id="synergiesList" class="synergies-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/items.js"></script>
+    <script src="js/sprites.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/traps.js"></script>
+    <script src="js/entities.js"></script>
+    <script src="js/dungeon.js"></script>
+    <script src="js/game.js"></script>
+
+    <script>
+        // Bootstrap and Connect UI
+        window.addEventListener('DOMContentLoaded', () => {
+            const game = new Game();
+            window.game = game;
+            game.init();
+
+            // UI Elements
+            const titleScreen = document.getElementById('titleScreen');
+            const startBtn = document.getElementById('startBtn');
+            const retryBtn = document.getElementById('retryBtn');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const victoryScreen = document.getElementById('victoryScreen');
+            const audioToggleBtn = document.getElementById('audioToggleBtn');
+            const openCompendiumBtn = document.getElementById('openCompendiumBtn');
+            const encyclopediaBtn = document.getElementById('encyclopediaBtn');
+            const closeCompendiumBtn = document.getElementById('closeCompendiumBtn');
+
+            const tabItemsBtn = document.getElementById('tabItemsBtn');
+            const tabSynergiesBtn = document.getElementById('tabSynergiesBtn');
+            const itemsTabContent = document.getElementById('itemsTabContent');
+            const synergiesTabContent = document.getElementById('synergiesTabContent');
+
+            // Start Game
+            startBtn.addEventListener('click', () => {
+                titleScreen.classList.add('hidden');
+                game.startNewGame();
+            });
+
+            // Retry Game
+            retryBtn.addEventListener('click', () => {
+                gameOverScreen.classList.add('hidden');
+                game.startNewGame();
+            });
+
+            playAgainBtn.addEventListener('click', () => {
+                victoryScreen.classList.add('hidden');
+                game.startNewGame();
+            });
+
+            // Audio Toggle
+            audioToggleBtn.addEventListener('click', () => {
+                const muted = game.sound.toggleMute();
+                audioToggleBtn.innerText = muted ? 'SFX: OFF' : 'SFX: ON';
+                audioToggleBtn.style.color = muted ? '#d90429' : '#f8f9fa';
+            });
+
+            // Compendium Open/Close
+            const openComp = () => {
+                if (game.state === 'PLAYING') game.state = 'PAUSED';
+                game.showCompendiumModal(true);
+            };
+            const closeComp = () => {
+                if (game.state === 'PAUSED') game.state = 'PLAYING';
+                game.showCompendiumModal(false);
+            };
+
+            openCompendiumBtn.addEventListener('click', openComp);
+            encyclopediaBtn.addEventListener('click', openComp);
+            closeCompendiumBtn.addEventListener('click', closeComp);
+
+            // Compendium Tabs
+            tabItemsBtn.addEventListener('click', () => {
+                tabItemsBtn.classList.add('active');
+                tabSynergiesBtn.classList.remove('active');
+                itemsTabContent.classList.remove('hidden');
+                synergiesTabContent.classList.add('hidden');
+            });
+
+            tabSynergiesBtn.addEventListener('click', () => {
+                tabSynergiesBtn.classList.add('active');
+                tabItemsBtn.classList.remove('active');
+                synergiesTabContent.classList.remove('hidden');
+                itemsTabContent.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

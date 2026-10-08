@@ -1,0 +1,324 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    background-color: #0b090a;
+    color: #f8f9fa;
+    font-family: 'Press Start 2P', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#gameContainer {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 133, 161, 0.3);
+    border: 4px solid #343a40;
+    border-radius: 6px;
+    background: #161a1d;
+    overflow: hidden;
+}
+
+canvas#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* Scanlines overlay effect for authentic retro arcade feel */
+.scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* UI Overlays */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11, 9, 10, 0.92);
+    z-index: 20;
+    padding: 24px;
+    text-align: center;
+    backdrop-filter: blur(2px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+h1.game-title {
+    font-size: 26px;
+    color: #ff85a1;
+    text-shadow: 3px 3px 0 #b83b5e, 5px 5px 0 #161a1d;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+    line-height: 1.4;
+}
+
+h2.sub-title {
+    font-size: 11px;
+    color: #ffd166;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.controls-box {
+    background: #1e2229;
+    border: 2px solid #495057;
+    padding: 16px;
+    border-radius: 4px;
+    font-size: 9px;
+    line-height: 1.8;
+    color: #adb5bd;
+    margin-bottom: 24px;
+    text-align: left;
+    max-width: 540px;
+}
+
+.controls-box span {
+    color: #ffd166;
+}
+
+.btn-group {
+    display: flex;
+    gap: 16px;
+}
+
+button.retro-btn {
+    background: #e63946;
+    color: #ffffff;
+    border: 3px solid #ff758f;
+    padding: 14px 22px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #9d0208;
+    transition: transform 0.05s, box-shadow 0.05s;
+}
+
+button.retro-btn:hover {
+    background: #ff4d6d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #9d0208;
+}
+
+button.retro-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #9d0208;
+}
+
+button.secondary-btn {
+    background: #457b9d;
+    border-color: #a8dadc;
+    box-shadow: 0 4px 0 #1d3557;
+}
+
+button.secondary-btn:hover {
+    background: #1d3557;
+    box-shadow: 0 6px 0 #0b090a;
+}
+
+/* Compendium Modal */
+.modal-content {
+    background: #161a1d;
+    border: 3px solid #ffd166;
+    width: 90%;
+    height: 85%;
+    overflow-y: auto;
+    padding: 20px;
+    text-align: left;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #343a40;
+    padding-bottom: 10px;
+}
+
+.modal-header h3 {
+    font-size: 14px;
+    color: #ffd166;
+}
+
+.close-btn {
+    background: #e63946;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tab-btn {
+    background: #2b303a;
+    color: #adb5bd;
+    border: 2px solid #495057;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 9px;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: #ff85a1;
+    color: #0b090a;
+    border-color: #ffb3c6;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+.item-card {
+    background: #212529;
+    border: 2px solid #343a40;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.item-card.collected {
+    border-color: #ffd166;
+    background: #2b303a;
+}
+
+.item-card.uncollected {
+    opacity: 0.45;
+}
+
+.item-name {
+    font-size: 10px;
+    color: #ff85a1;
+    margin-bottom: 6px;
+}
+
+.item-card.collected .item-name {
+    color: #ffd166;
+}
+
+.item-desc {
+    font-size: 8px;
+    color: #adb5bd;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.item-tag {
+    font-size: 7px;
+    color: #06d6a0;
+}
+
+.synergies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.synergy-row {
+    background: #212529;
+    border: 2px solid #495057;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.synergy-row.unlocked {
+    border-color: #8338ec;
+    background: #24143a;
+}
+
+.synergy-title {
+    font-size: 11px;
+    color: #c77dff;
+    margin-bottom: 6px;
+}
+
+.synergy-req {
+    font-size: 9px;
+    color: #ffd166;
+    margin-bottom: 6px;
+}
+
+.synergy-effect {
+    font-size: 8px;
+    color: #f8f9fa;
+    line-height: 1.4;
+}
+
+/* Stats Readout */
+.stats-readout {
+    font-size: 10px;
+    color: #e9ecef;
+    line-height: 2.0;
+    margin: 20px 0;
+}
+
+/* Top bar controls */
+.top-bar {
+    width: 800px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 9px;
+    color: #adb5bd;
+}
+
+.top-bar-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.small-btn {
+    background: #343a40;
+    color: #f8f9fa;
+    border: 1px solid #495057;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 8px;
+    cursor: pointer;
+}
+
+.small-btn:hover {
+    background: #495057;
+}
